@@ -12,12 +12,6 @@ Base.:(==)(s1::Ball, s2::Ball) = s1.c==s2.c && s1.r==s2.r
 Base.isapprox(s1::Ball, s2::Ball) = s1.c≈s2.c && s1.r≈s2.r
 Base.hash(s::Ball, h::UInt) = hash(s.c, hash(s.r, hash(:Ball, h)))
 
-# level(x::SReal{K}, s::Ball{K}) where {K} = norm(x-s.c) / s.r - 1.0
-function level(x::SReal{K}, s::Ball{K}) where {K}
-    ∆ = abs.((x-s.c) / s.r)
-    α = maximum(∆)
-    return iszero(α) ? -1.0 : α*norm(∆/α)-1.0
-end
-
+level(x::SReal{K}, s::Ball{K}) where {K} = norm(x-s.c) / s.r - 1.0
 center(s::Ball) = s.c
 bounds(s::Ball) = (s.c .- s.r, s.c .+ s.r)
