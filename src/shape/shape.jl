@@ -12,29 +12,7 @@ level(x::AbsVecReal, s::AbstractShape{K}) where {K} = level(SVec{K}(x), s)
 function center end
 
 # Return the minimum axis-aligned bounding box of the shape.
-function bounds(s::AbstractShape{K}) where {K}
-    c = center(s)
-    δc = τᵣ*abs.(c) .+ τₐ  # SFloat{K}; all-positive entries
-
-    # Calculate the negative-end corner of the axis-aligned bounding box.
-    bₙ = SVec(ntuple(k->
-        begin
-            c′ = c - δc[k] * SVec(ntuple(k′->(k′==k), Val(K)))  # SFloat{K}; perturb c towards negative direction of k-axis
-            # c′ = c - δc
-            bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float
-        end, Val(K)))
-
-    # Calculate the positive-end corner of the axis-aligned bounding box.
-    bₚ = SVec(ntuple(k->
-        begin
-            c′ = c + δc[k] * SVec(ntuple(k′->(k′==k), Val(K)))  # SFloat{K}; perturb c towards positive direction of k-axis
-            # c′ = c + δc
-            bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float
-        end, Val(K)))
-
-    # return c + τᵣ*(bₙ-c), c + τᵣ*(bₚ-c)  # make box slightly larger
-    return bₙ, bₚ
-end
+function bounds end
 
 # Return the outward normal direction, even for x inside the shape.
 ndir(x::AbsVecReal, s::AbstractShape{K}) where {K} = ndir(SVec{K}(x), s)
