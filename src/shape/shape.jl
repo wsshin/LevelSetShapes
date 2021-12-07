@@ -20,6 +20,7 @@ function bounds(s::AbstractShape{K}) where {K}
     bₙ = SVec(ntuple(k->
         begin
             c′ = c - δc[k] * SVec(ntuple(k′->(k′==k), Val(K)))  # SFloat{K}; perturb c towards negative direction of k-axis
+            # c′ = c - δc
             bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float
         end, Val(K)))
 
@@ -27,6 +28,7 @@ function bounds(s::AbstractShape{K}) where {K}
     bₚ = SVec(ntuple(k->
         begin
             c′ = c + δc[k] * SVec(ntuple(k′->(k′==k), Val(K)))  # SFloat{K}; perturb c towards positive direction of k-axis
+            # c′ = c + δc
             bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float
         end, Val(K)))
 

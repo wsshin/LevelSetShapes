@@ -24,4 +24,5 @@ Base.isapprox(s1::Ellipsoid, s2::Ellipsoid) = s1.c≈s2.c && s1.r≈s2.r && s1.p
 Base.hash(s::Ellipsoid, h::UInt) = hash(s.c, hash(s.r, hash(s.p, hash(:Ellipsoid, h))))
 
 level(x::SReal{K}, s::Ellipsoid{K}) where {K} = norm((s.p * (x-s.c)) ./ s.r) - 1.0
+# level(x::SReal{K}, s::Ellipsoid{K}) where {K} = √sum(abs2,((s.p * (x-s.c)) ./ s.r)) - 1.0
 center(s::Ellipsoid) = s.c
