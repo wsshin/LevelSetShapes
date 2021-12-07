@@ -16,11 +16,12 @@ function bounds end
 
 # Return the outward normal direction, even for x inside the shape.
 ndir(x::AbsVecReal, s::AbstractShape{K}) where {K} = ndir(SVec{K}(x), s)
+ndir(x::SReal{K}, s::AbstractShape{K}) where {K} = project(x, s).ndir
 
 # Project x onto s along the direction normal to the shape.  The result is only
 # approximate.
 project(x::AbsVecReal, s::AbstractShape{K}) where {K} = project(SVec{K}(x), s)
 
 include("translated.jl")
-include("simple/simple.jl")
+include("smooth/smooth.jl")
 include("composite/composite.jl")

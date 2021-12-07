@@ -1,6 +1,6 @@
-export Ellipsoid
+export Ellipsoid, Ball
 
-struct Ellipsoid{K,K²} <: AbstractSimpleShape{K}
+struct Ellipsoid{K,K²} <: AbstractSmoothShape{K}
     c::SFloat{K}  # center of ellipsoid
     r::SFloat{K}  # semiaxes ("radii") in axis directions
     p::S²Float{K,K²}  # projection matrix to Ellipsoid coordinates; must be orthonormal (see surfpt_nearby)
@@ -17,12 +17,11 @@ function Ellipsoid(c::AbsVecReal,  # center of ellipsoid
     return Ellipsoid{K,K*K}(c,r,p)
 end
 
-# Ellipsoid(s::Cuboid{K,K²}) where {K,K²} = Ellipsoid{K,K²}(s.c, (s.r).^-2, s.p)
+Ball(c::AbsVecReal, r::Real) = (K = length(c); Ellipsoid(c, @SVector(fill(r,K))))
 
 Base.:(==)(s1::Ellipsoid, s2::Ellipsoid) = s1.c==s2.c && s1.r==s2.r && s1.p==s2.p
 Base.isapprox(s1::Ellipsoid, s2::Ellipsoid) = s1.c≈s2.c && s1.r≈s2.r && s1.p≈s2.p
 Base.hash(s::Ellipsoid, h::UInt) = hash(s.c, hash(s.r, hash(s.p, hash(:Ellipsoid, h))))
 
 level(x::SReal{K}, s::Ellipsoid{K}) where {K} = norm((s.p * (x-s.c)) ./ s.r) - 1.0
-# level(x::SReal{K}, s::Ellipsoid{K}) where {K} = √sum(abs2,((s.p * (x-s.c)) ./ s.r)) - 1.0
 center(s::Ellipsoid) = s.c

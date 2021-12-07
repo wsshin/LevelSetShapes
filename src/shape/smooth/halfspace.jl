@@ -1,6 +1,6 @@
 export HalfSpace
 
-struct HalfSpace{K} <: AbstractSimpleShape{K}
+struct HalfSpace{K} <: AbstractSmoothShape{K}
     x₀::SFloat{K}  # point on boundary
     n̂::SFloat{K}  # outward direction normal
     HalfSpace{K}(x₀,n̂) where {K} = new(x₀,n̂)  # suppress default outer constructor
