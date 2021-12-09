@@ -10,7 +10,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 
 [compat]
-AbbreviatedTypes = "^0.1.4"
+AbbreviatedTypes = "^0.1.4, 0.2"
 ForwardDiff = "^0.10.23"
 NLsolve = "^4.5.1"
 julia = "^1.7"
