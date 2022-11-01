@@ -1,7 +1,7 @@
 name = "LevelSetShapes"
 uuid = "c46c7285-e846-4327-9916-82f09614e99d"
 authors = ["Wonseok Shin <wsshin97@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 AbbreviatedTypes = "1766def0-c946-4dda-a59e-d0d07f8410f7"
