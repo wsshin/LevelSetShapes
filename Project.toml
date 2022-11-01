@@ -10,10 +10,10 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 
 [compat]
-AbbreviatedTypes = "^0.1.4"
-ForwardDiff = "^0.10.23"
-NLsolve = "^4.5.1"
-julia = "^1.7"
+AbbreviatedTypes = "≥ 0.1.4"
+ForwardDiff = "0.10.23 - 0"
+NLsolve = "4.5.1 - 4"
+julia = "1.7 - 1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
