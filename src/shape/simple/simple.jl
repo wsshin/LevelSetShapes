@@ -9,7 +9,7 @@ function project(x::SVector{K,<:Real}, s::AbstractSimpleShape{K}, ∆r::Real=0) 
     n̂ = ndir(x, s)
     d = level(x, s, ∆r)
 
-    pt = x - d*n̂
+    pt = x - d * n̂
 
     return (pt=pt, ndir=n̂)
 end
