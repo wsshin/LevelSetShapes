@@ -8,6 +8,18 @@ Base.in(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} 
 # Return the value of the level set function of the shape.
 level(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = level(SVector{K}(x), s, ∆r)
 
+# Below, typing x::SVector{K,Float64} generates an error in gradient().
+ndir(x::SVector{K,<:Real}, s::AbstractSimpleShape{K}, ∆r::Real=0) where {K} = gradient(x -> level(x,s,∆r), x)  # assume lever(...) is signed distance function
+
+function project(x::SVector{K,<:Real}, s::AbstractSimpleShape{K}, ∆r::Real=0) where {K}
+    n̂ = ndir(x, s)
+    d = level(x, s, ∆r)
+
+    pt = x - d * n̂
+
+    return (pt=pt, ndir=n̂)
+end
+
 # Return the center position of the shape, where the level set function is minimized.
 function center end
 
