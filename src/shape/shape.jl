@@ -53,6 +53,6 @@ ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = n
 # approximate.
 project(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = project(SVector{K}(x), s, ∆r)
 
-include("translated.jl")
-include("simple/simple.jl")
-# include("composite/composite.jl")
+include("ball.jl")
+# include("ellipsoid.jl")
+include("halfspace.jl")
