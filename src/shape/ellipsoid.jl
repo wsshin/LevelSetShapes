@@ -7,9 +7,11 @@ struct Ellipsoid{K,K²} <: AbstractShape{K}
     Ellipsoid{K,K²}(c,r,p) where {K,K²} = new(c,r,p)  # suppress default outer constructor
 end
 
-function Ellipsoid(c::AbstractVector{<:Real},  # center of ellipsoid
-                   r::AbstractVector{<:Real},  # semiaxes ("radii")
-                   axes::AbstractMatrix{<:Real}=SMatrix{length(c),length(c)}(I))  # columns are axes vector; assumed orthogonal
+function Ellipsoid(
+    c::AbstractVector{<:Real},  # center of ellipsoid
+    r::AbstractVector{<:Real},  # semiaxes ("radii")
+    axes::AbstractMatrix{<:Real}=SMatrix{length(c),length(c)}(I)  # columns are axes vector; assumed orthogonal
+)
     K = length(c)
     l_ax = SVector(ntuple(k->norm(@view(axes[:,k])), Val(K)))
     p = axes' ./ l_ax
