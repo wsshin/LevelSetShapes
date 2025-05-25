@@ -1,2 +1,2 @@
 include("boolean.jl")
-include("translated.jl")
+include("translation.jl")
