@@ -52,13 +52,6 @@ function bounds(s::AbstractShape{K}) where {K}
     return bₙ, bₚ
 end
 
-# Return the outward normal direction, even for x inside the shape.
-ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = ndir(SVector{K}(x), s, δr)
-
-# Project x onto s along the direction normal to the shape.  The result is only
-# approximate.
-project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = project(SVector{K}(x), s, δr)
-
 include("ball.jl")
 # include("ellipsoid.jl")
 include("halfspace.jl")
