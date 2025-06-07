@@ -2,7 +2,6 @@ struct Ellipsoid{K,K²} <: AbstractShape{K}
     c::SVector{K,Float64}  # center of ellipsoid
     r::SVector{K,Float64}  # semiaxes ("radii") in axis directions
     p::SMatrix{K,K,Float64,K²}  # projection matrix to Ellipsoid coordinates; must be orthonormal (see surfpt_nearby)
-    Ellipsoid{K,K²}(c,r,p) where {K,K²} = new(c,r,p)  # suppress default outer constructor
 end
 
 function Ellipsoid(
