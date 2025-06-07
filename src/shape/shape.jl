@@ -5,14 +5,21 @@ broadcastable(shp::AbstractShape) = Ref(shp)
 in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = level(x,s,δr) ≤ 0
 
 # Return the value of the level set function of the shape.
-level(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = level(SVector{K}(x), s, ∆r)
+level(x₁::Real, s::AbstractShape{1}, δr::Real=0) = level(SVector{1}(x₁), s, δr)
+level(x₁::Real, x₂::Real, s::AbstractShape{2}, δr::Real=0) = level(SVector{2}(x₁,x₂), s, δr)
+level(x₁::Real, x₂::Real, x₃::Real, s::AbstractShape{3}, δr::Real=0) = level(SVector{3}(x₁,x₂,x₃), s, δr)
+
+level(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = level(SVector{K}(x), s, δr)
+level(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x, s)  # default behavior (incorrect for shape with corners)
 
 # Below, typing x::SVector{K,Float64} generates an error in gradient().
-ndir(x::SVector{K,<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = gradient(x -> level(x,s,∆r), x)  # assume lever(...) is signed distance function
+ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = ndir(SVector{K}(x), s, δr)
+ndir(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = gradient(x -> level(x,s,δr), x)  # assume lever(...) is signed distance function
 
-function project(x::SVector{K,<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K}
-    n̂ = ndir(x, s)
-    d = level(x, s, ∆r)
+project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = project(SVector{K}(x), s, δr)
+function project(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real=0) where {K}
+    n̂ = ndir(x, s, δr)
+    d = level(x, s, δr)
 
     pt = x - d * n̂
 
@@ -46,11 +53,11 @@ function bounds(s::AbstractShape{K}) where {K}
 end
 
 # Return the outward normal direction, even for x inside the shape.
-ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = ndir(SVector{K}(x), s, ∆r)
+ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = ndir(SVector{K}(x), s, δr)
 
 # Project x onto s along the direction normal to the shape.  The result is only
 # approximate.
-project(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = project(SVector{K}(x), s, ∆r)
+project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = project(SVector{K}(x), s, δr)
 
 include("ball.jl")
 # include("ellipsoid.jl")
