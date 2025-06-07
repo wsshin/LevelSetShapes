@@ -17,8 +17,6 @@ function Ellipsoid(
     return Ellipsoid{K,K*K}(c,r,p)
 end
 
-Ball(c::AbstractVector{<:Real}, r::Real) = (K = length(c); Ellipsoid(c, @SVector(fill(r,K))))
-
 (==)(s1::Ellipsoid, s2::Ellipsoid) = s1.c==s2.c && s1.r==s2.r && s1.p==s2.p
 isapprox(s1::Ellipsoid, s2::Ellipsoid) = s1.c≈s2.c && s1.r≈s2.r && s1.p≈s2.p
 hash(s::Ellipsoid, h::UInt) = hash(s.c, hash(s.r, hash(s.p, hash(:Ellipsoid, h))))
