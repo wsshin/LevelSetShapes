@@ -1,6 +1,8 @@
 abstract type AbstractShape{K} end
 
-Base.in(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = level(x,s, ∆r) ≤ 0
+broadcastable(shp::AbstractShape) = Ref(shp)
+
+in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = level(x,s,δr) ≤ 0
 
 # Return the value of the level set function of the shape.
 level(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = level(SVector{K}(x), s, ∆r)

@@ -4,6 +4,8 @@ using ForwardDiff: derivative, gradient, jacobian
 using LinearAlgebra
 using StaticArrays
 
+import Base: ==, isapprox, hash, broadcastable, in
+
 # shape.jl
 export AbstractShape
 export level, ndir, project, center, bounds
