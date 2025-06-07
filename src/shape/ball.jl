@@ -1,5 +1,3 @@
-export Ball
-
 struct Ball{K} <: AbstractShape{K}
     c::SVector{K,Float64}  # center of ball
     r::Float64  # radius

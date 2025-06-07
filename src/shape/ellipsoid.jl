@@ -1,5 +1,3 @@
-export Ellipsoid, Ball
-
 struct Ellipsoid{K,K²} <: AbstractShape{K}
     c::SVector{K,Float64}  # center of ellipsoid
     r::SVector{K,Float64}  # semiaxes ("radii") in axis directions

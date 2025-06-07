@@ -1,5 +1,3 @@
-export HalfSpace
-
 struct HalfSpace{K} <: AbstractShape{K}
     x₀::SVector{K,Float64}  # point on boundary
     n̂::SVector{K,Float64}  # outward direction normal

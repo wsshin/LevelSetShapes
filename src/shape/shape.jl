@@ -1,6 +1,3 @@
-export AbstractShape
-export level, ndir, project, center, bounds
-
 abstract type AbstractShape{K} end
 
 Base.in(x::AbstractVector{<:Real}, s::AbstractShape{K}, ∆r::Real=0) where {K} = level(x,s, ∆r) ≤ 0
