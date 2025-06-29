@@ -13,12 +13,12 @@ level(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = l
 level(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x, s)  # default behavior (incorrect for shape with corners)
 
 # Below, typing x::SVector{K,Float64} generates an error in gradient().
-ndir(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = ndir(SVector{K}(x), s, δr)
-ndir(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = gradient(x -> level(x,s,δr), x)  # assume lever(...) is signed distance function
+outnormal(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = outnormal(SVector{K}(x), s, δr)
+outnormal(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = (gradient(x -> level(x,s,δr), x))  # assume lever(...) is signed distance function
 
 project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = project(SVector{K}(x), s, δr)
 function project(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real=0) where {K}
-    n̂ = ndir(x, s, δr)
+    n̂ = outnormal(x, s, δr)
     d = level(x, s, δr)
 
     pt = x - d * n̂

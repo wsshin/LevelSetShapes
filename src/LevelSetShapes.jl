@@ -8,7 +8,7 @@ import Base: ==, isapprox, hash, broadcastable, in
 
 # shape.jl
 export AbstractShape
-export level, ndir, project, center, bounds
+export level, outnormal, project, center, bounds
 
 # ball.jl
 export Ball
