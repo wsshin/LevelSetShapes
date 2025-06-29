@@ -54,4 +54,4 @@ end
 
 include("ball.jl")
 # include("ellipsoid.jl")
-include("halfspace.jl")
+include("polyhedron.jl")
