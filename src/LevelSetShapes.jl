@@ -1,6 +1,7 @@
 module LevelSetShapes
 
 using ForwardDiff: derivative, gradient, jacobian
+using GoldfarbIdnaniSolver: solveQP
 using LinearAlgebra
 using StaticArrays
 
@@ -16,8 +17,8 @@ export Ball
 # ellipsoid.jl
 export Ellipsoid
 
-# halfspace.jl
-export HalfSpace
+# polyhedron.jl
+export Polyhedron
 
 # translation.jl
 export TranslatedShape
