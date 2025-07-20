@@ -1,20 +1,3 @@
-struct HalfSpace{K} <: AbstractShape{K}
-    x₀::SVector{K,Float64}  # point on boundary
-    n̂::SVector{K,Float64}  # outward direction normal
-end
-
-HalfSpace(x₀::AbstractVector{<:Real}, n::AbstractVector{<:Real}) = HalfSpace{length(x₀)}(x₀, normalize(n))
-
-(==)(s1::HalfSpace, s2::HalfSpace) = s1.x₀==s2.x₀ && s1.n̂==s2.n̂
-isapprox(s1::HalfSpace, s2::HalfSpace) = s1.x₀≈s2.x₀ && s1.n̂≈s2.n̂
-hash(s::HalfSpace, h::UInt) = hash(s.x₀, hash(s.n̂, hash(:HalfSpace, h)))
-
-level(x::SVector{K,<:Real}, s::HalfSpace{K}) where {K} = s.n̂ ⋅ (x-s.x₀)  # signed distance function
-
-# The following functions cannot be implemented for HalfSpace.
-# center()
-# bounds()
-
 struct Polyhedron{K,F,KF} <: AbstractShape{K}  # F: number of faces; V: number of vertices; KF = K⋅F
     N::SMatrix{K,F,Float64,KF}  # each column is outward unit normal to face
     r::SVector{F,Float64}  # Nᵀx ≤ r define polyhedron; nᵢᵀ x ≤ rᵢ is half space
