@@ -3,7 +3,12 @@ struct Polyhedron{K,F,KF} <: AbstractShape{K}  # F: number of faces; V: number o
     r::SVector{F,Float64}  # Nᵀx ≤ r define polyhedron; nᵢᵀ x ≤ rᵢ is half space
 end
 
-Polyhedron(N::AbstractMatrix{<:Real}, r::AbstractVector{<:Real}) = Polyhedron{size(N)...,length(N)}(N, r)
+function Polyhedron(N::AbstractMatrix{<:Real}, r::AbstractVector{<:Real})
+    K, F = size(N)
+    d = .√sum(abs2, N, dims=1)
+
+    return Polyhedron{K,F,K*F}(N ./ d, r)
+end
 
 function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     Q = SMatrix{K,K,Float64}(2I)
