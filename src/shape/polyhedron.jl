@@ -16,6 +16,16 @@ function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
 
     # Below, A and b are negated because solveQP(Q, c, A, b) assumes that constraints are
     # Aᵀ r ≥ b instead of Aᵀ r ≤ b.
+    #
+    # In constructing b, s.r is reduced by δr.
+    # - Near a face, the retraction increases the distance by δr, so decreasing it back by 
+    # δr later recovers the distance to the original shape.
+    # - Near a vertex, the retraction increases the distance by more than δr, so increaning
+    # in back by δr later produces a distance greater than the distance to the original 
+    # vertex: it produces the distance to a shape that is rounded at the vertex.
+    #
+    # Suppose we collect all the points that are δr-away from the shape whose faces are
+    # retracted by δr.  Around a vertex, the radius of rounded vertex becomes exactly δr.
     A = -s.N
     b = -(s.r .- δr)  # calculate SDF for sharp shape retreated by δr
 
@@ -30,5 +40,5 @@ function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     # Note that when the polygon changes, Q and c do not change; only A and b change.
     y = solveQP(Q, c, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
 
-    return norm(y - x) - δr  # distance was overestimated by retraction, so reduce by δr
+    return norm(y - x) - δr  # distance was overestimated by retraction, so reduce it by δr
 end
