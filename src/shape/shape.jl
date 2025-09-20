@@ -2,7 +2,8 @@ abstract type AbstractShape{K} end
 
 broadcastable(shp::AbstractShape) = Ref(shp)
 
-in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real=0) where {K} = level(x,s,δr) ≤ 0
+in(x, s) = in(x, s, 0)
+in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x,s,δr) ≤ 0
 
 # Return the value of the level set function of the shape.
 level(x, s) = level(x, s, 0)
