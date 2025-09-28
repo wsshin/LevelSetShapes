@@ -24,14 +24,6 @@ IntersectionShape(shps::AbstractVector{<:AbstractShape}) = IntersectionShape{len
 #     return lv_round
 # end
 
-# This is the updated version that is differentiable.
-function level(x::SVector{K,<:Real}, shp::IntersectionShape{K}, δr::Real=0) where {K}
-    lv_sharp = mapreduce(shpᵢ->level(x,shpᵢ), max, shp.shps; init=-Inf)
-    if lv_sharp < -δr
-        lv_round = lv_sharp
-    else
-        lv_round = norm(max.(level.(Ref(x), shp.shps) .+ δr, 0)) - δr
-    end
-
-    return lv_round
-end
+# # This is the updated version that is differentiable.
+# level(x::SVector{K,<:Real}, shp::IntersectionShape{K}, δr::Real=0) where {K} = 
+#     mapreduce(shpᵢ->level(x,shpᵢ,δr), max, shp.shps; init=-Inf)
