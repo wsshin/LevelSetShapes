@@ -2,6 +2,8 @@ abstract type AbstractShape{K} end
 
 broadcastable(shp::AbstractShape) = Ref(shp)
 
+center(s::AbstractShape) = s.c
+
 in(x::AbstractVector{<:Real}, s::AbstractShape) = in(x, s, 0)
 in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x,s,δr) ≤ 0
 
