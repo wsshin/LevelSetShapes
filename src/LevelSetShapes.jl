@@ -11,8 +11,8 @@ import Base: ==, isapprox, hash, broadcastable, in
 export AbstractShape
 export level, outnormal, project, center, bounds
 
-# ball.jl
-export Ball
+# sphere.jl
+export Sphere
 
 # ellipsoid.jl
 export Ellipsoid

@@ -55,6 +55,6 @@ function bounds(s::AbstractShape{K}) where {K}
     return bₙ, bₚ
 end
 
-include("ball.jl")
+include("sphere.jl")
 # include("ellipsoid.jl")
 include("polyhedron.jl")
