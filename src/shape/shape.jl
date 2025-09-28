@@ -2,11 +2,11 @@ abstract type AbstractShape{K} end
 
 broadcastable(shp::AbstractShape) = Ref(shp)
 
-in(x, s) = in(x, s, 0)
+in(x::AbstractVector{<:Real}, s::AbstractShape) = in(x, s, 0)
 in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x,s,δr) ≤ 0
 
 # Return the value of the level set function of the shape.
-level(x, s) = level(x, s, 0)
+level(x::AbstractVector{<:Real}, s::AbstractShape) = level(x, s, 0)
 level(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(SVector{K}(x), s, δr)
 
 level(x₁::Real, s::AbstractShape{1}, δr::Real) = level(SVector{1}(x₁), s, δr)
@@ -14,11 +14,11 @@ level(x₁::Real, x₂::Real, s::AbstractShape{2}, δr::Real) = level(SVector{2}
 level(x₁::Real, x₂::Real, x₃::Real, s::AbstractShape{3}, δr::Real) = level(SVector{3}(x₁,x₂,x₃), s, δr)
 
 # Below, typing x::SVector{K,Float64} generates an error in gradient().
-outnormal(x, s) = outnormal(x, s, 0)
+outnormal(x::AbstractVector{<:Real}, s::AbstractShape) = outnormal(x, s, 0)
 outnormal(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = outnormal(SVector{K}(x), s, δr)
 outnormal(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K} = (gradient(x -> level(x,s,δr), x))  # assume lever(...) is signed distance function
 
-project(x, s) = project(x, s, 0)
+project(x::AbstractVector{<:Real}, s::AbstractShape) = project(x, s, 0)
 project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = project(SVector{K}(x), s, δr)
 function project(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K}
     n̂ = outnormal(x, s, δr)
