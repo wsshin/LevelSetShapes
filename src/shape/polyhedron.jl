@@ -18,25 +18,49 @@ function Polyhedron(c::AbstractVector{<:Real}, N::AbstractMatrix{<:Real}, r::Abs
 end
 
 function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
-    sdf = level_in(x, s, δr)
-    if sdf > -δr
-        sdf = level_out(x, s, δr)
-    end
+    sd = sdf(x, s.c, s.N, s.r, δr)
+    if sd < 0
+        f(∆r, p) = sdf(x, s.c, s.N, s.r .+ ∆r, δr)
 
-    return sdf
+        prb = NonlinearProblem{false}(f, 0)
+        # sol = solve(prb, SimpleNewtonRaphson())
+        # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
+        sol = solve(prb, SimpleBroyden())
+        # @show sol
+        return sol.u
+    else
+        return sd
+    end
 end
 
-function level_in(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
-    N = s.N
-    r = s.r .- δr  # calculate SDF for sharp shape retreated by δr
-    d = r .- transpose(N) * (x .- s.c)
+function sdf(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
+    rmin = minimum(r)
+
+    # if rmin < δr  # this case makes r′ in sdf_in(...) negative
+    #     r = r .- (rmin - δr)
+    # end
+    if rmin < 2δr
+        r = r .- (rmin - 2δr)  # make r at least 2δr; δr could merge two opposite faces
+    end
+
+    sd = sdf_in(x, c, N, r, δr)
+    if sd > -δr
+        sd = sdf_out(x, c, N, r, δr)
+    end
+
+    return sd
+end
+
+function sdf_in(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
+    r′ = r .- δr  # calculate SDF for sharp shape retreated by δr
+    d = r′ .- transpose(N) * (x .- c)
 
     return -(minimum(d) + δr)  # minus for SDF
 end
 
-function level_out(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+function sdf_out(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
     Q = SMatrix{K,K,Float64}(2I)
-    d = float(2(x-s.c))
+    d = float(2(x-c))
 
     # Below, A and b are negated because solveQP(Q, d, A, b) assumes that constraints are
     # Aᵀ r ≥ b instead of Aᵀ r ≤ b.
@@ -50,8 +74,8 @@ function level_out(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     #
     # Suppose we collect all the points that are δr-away from the shape whose faces are
     # retracted by δr.  Around a vertex, the radius of rounded vertex becomes exactly δr.
-    A = -s.N
-    b = -(s.r .- δr)  # calculate SDF for sharp shape retreated by δr
+    A = -N
+    b = -(r .- δr)  # calculate SDF for sharp shape retreated by δr
 
     # The following solveQP(...) minimizes f(y) = -cᵀ y + ½ yᵀ Q y, subject to Aᵀ y ≥ b
     # (rather than Aᵀ y = b, as the keyword argument `meq` specifying the number of equality
@@ -65,9 +89,10 @@ function level_out(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     global y
     try
     y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
-    catch
+    catch e
         @show Q, d, A, b
+        rethrow(e)
     end
 
-    return norm(y + s.c - x) - δr  # distance was overestimated by retraction, so reduce it by δr
+    return norm(y + c - x) - δr  # distance was overestimated by retraction, so reduce it by δr
 end
