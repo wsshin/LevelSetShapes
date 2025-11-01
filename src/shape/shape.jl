@@ -18,7 +18,7 @@ level(x₁::Real, x₂::Real, x₃::Real, s::AbstractShape{3}, δr::Real) = leve
 # Below, typing x::SVector{K,Float64} generates an error in gradient().
 outnormal(x::AbstractVector{<:Real}, s::AbstractShape) = outnormal(x, s, 0)
 outnormal(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = outnormal(SVector{K}(x), s, δr)
-outnormal(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K} = (gradient(x -> level(x,s,δr), x))  # assume lever(...) is signed distance function
+outnormal(x::SVector{K,<:Real}, s::AbstractShape{K}, δr::Real) where {K} = (ForwardDiff.gradient(x -> level(x,s,δr), x))  # assume lever(...) is signed distance function
 
 project(x::AbstractVector{<:Real}, s::AbstractShape) = project(x, s, 0)
 project(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = project(SVector{K}(x), s, δr)

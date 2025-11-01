@@ -1,6 +1,6 @@
 module LevelSetShapes
 
-using ForwardDiff: derivative, gradient, jacobian
+using ForwardDiff
 using GoldfarbIdnaniSolver: solveQP
 using LinearAlgebra
 using StaticArrays
@@ -26,6 +26,7 @@ export TranslatedShape
 # boolean.jl
 export IntersectionShape
 
+include("util.jl")
 include("shape/shape.jl")
 include("operation/operation.jl")
 
