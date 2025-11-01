@@ -62,7 +62,12 @@ function level_out(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     # which is exactly the function we want to minimize.
     #
     # Note that when the polygon changes, Q and d do not change; only A and b change.
+    global y
+    try
     y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
+    catch
+        @show Q, d, A, b
+    end
 
     return norm(y + s.c - x) - δr  # distance was overestimated by retraction, so reduce it by δr
 end
