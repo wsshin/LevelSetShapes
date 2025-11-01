@@ -18,6 +18,23 @@ function Polyhedron(c::AbstractVector{<:Real}, N::AbstractMatrix{<:Real}, r::Abs
 end
 
 function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+    sdf = level_in(x, s, δr)
+    if sdf > -δr
+        sdf = level_out(x, s, δr)
+    end
+
+    return sdf
+end
+
+function level_in(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+    N = s.N
+    r = s.r .- δr  # calculate SDF for sharp shape retreated by δr
+    d = r .- transpose(N) * (x .- s.c)
+
+    return -(minimum(d) + δr)  # minus for SDF
+end
+
+function level_out(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
     Q = SMatrix{K,K,Float64}(2I)
     d = float(2(x-s.c))
 
