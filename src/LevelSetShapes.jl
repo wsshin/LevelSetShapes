@@ -3,6 +3,8 @@ module LevelSetShapes
 using ForwardDiff
 using GoldfarbIdnaniSolver: solveQP
 using LinearAlgebra
+using LinearSolve
+using NonlinearSolve
 using StaticArrays
 
 import Base: ==, isapprox, hash, broadcastable, in

@@ -1,8 +1,9 @@
-abstract type AbstractShape{K} end
+abstract type AbstractShape{K} end  # K: dimension of space
 
 broadcastable(shp::AbstractShape) = Ref(shp)
 
 center(s::AbstractShape) = s.c
+max_radius(s::AbstractShape) = maximum(s.r)
 
 in(x::AbstractVector{<:Real}, s::AbstractShape) = in(x, s, 0)
 in(x::AbstractVector{<:Real}, s::AbstractShape{K}, δr::Real) where {K} = level(x,s,δr) ≤ 0
@@ -35,25 +36,90 @@ end
 function center end
 
 # Return the minimum axis-aligned bounding box of the shape.
-function bounds(s::AbstractShape{K}) where {K}
+function bounds(s::AbstractShape{K}, δr::Real) where {K}
     c = center(s)
-    δc = τᵣ*abs.(c) .+ τₐ  # SVector{K,Float64}; all-positive entries
-
-    # Calculate the negative-end corner of the axis-aligned bounding box.
+    # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
+    ∆c = 2 * max_radius(s)
+    # ∆c = 1e-1max_radius(s)
+    # ∆c = 3δr
+    # δc = min_radius(s) * Base.rtoldefault(Float64)
+    
+    # Calculeate the negative-end corner of the axis-aligned bounding box.
+    # c′ = c .- ∆c
     bₙ = SVector(ntuple(k->
         begin
-            c′ = c - δc[k] * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards negative direction of k-axis
-            bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float64
-        end, Val(K)))
+            println()
+            c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
+            println("c′ for bₙ for k = $k: $c′")
+            ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
+            @show ∇proj_level(c′), level(c′,s,δr)
+            if true
+                let f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
+                    prb = NonlinearProblem{false}(f, c′)
+                    sol = solve(prb, NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver)))
+                    # sol = solve(prb, SimpleNewtonRaphson())
+                    # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
+                    # sol = solve(prb, SimpleBroyden())
+                    @show sol
+                    sol.u[k]
+                end
+            else
+                let f(x) = SVector(∇proj_level(x)..., level(x,s,δr))
+                    res = newton(f, c′)
+                    @show res
+                    res.sol[k]
+                end
+            end
+        end, 
+        Val(K))
+    )
 
     # Calculate the positive-end corner of the axis-aligned bounding box.
+    # c′ = c .+ ∆c
     bₚ = SVector(ntuple(k->
         begin
-            c′ = c + δc[k] * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards positive direction of k-axis
-            bₖ = lagrange(x->x[k], x->level(x,s), c′, rtol=τₐ).sol[k]  # Float64
-        end, Val(K)))
+            println()
+            c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
+            println("c′ for bₚ for k = $k: $c′")
+            ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
+            @show ∇proj_level(c′), level(c′,s,δr)
+            if true
+                let f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
+                    prb = NonlinearProblem{false}(f, c′)
+                    sol = solve(prb, NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver)))
+                    # sol = solve(prb, SimpleNewtonRaphson())
+                    # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
+                    # sol = solve(prb, SimpleBroyden())
+                    @show sol
+                    sol.u[k]
+                end
+            else
+                let f(x) = SVector(∇proj_level(x)..., level(x,s,δr))
+                    res = newton(f, c′)
+                    @show res
+                    res.sol[k]
+                end
+            end
+        end, 
+        Val(K))
+    )
 
-    # return c + τᵣ*(bₙ-c), c + τᵣ*(bₚ-c)  # make box slightly larger
+
+    # # Calculate the negative-end corner of the axis-aligned bounding box.
+    # bₙ = SVector(ntuple(k->
+    #     begin
+    #         c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards negative direction of k-axis
+    #         bₖ = lagrange(x->x[k], x->level(x,s), c′).sol[k]  # Float64
+    #     end, Val(K)))
+
+    # # Calculate the positive-end corner of the axis-aligned bounding box.
+    # bₚ = SVector(ntuple(k->
+    #     begin
+    #         c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards positive direction of k-axis
+    #         bₖ = lagrange(x->x[k], x->level(x,s), c′).sol[k]  # Float64
+    #     end, Val(K)))
+
+    # # return c + τᵣ*(bₙ-c), c + τᵣ*(bₚ-c)  # make box slightly larger
     return bₙ, bₚ
 end
 
