@@ -39,67 +39,45 @@ function center end
 function bounds(s::AbstractShape{K}, δr::Real) where {K}
     c = center(s)
     # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
-    ∆c = 2 * max_radius(s)
+    ∆c = max_radius(s)
     # ∆c = 1e-1max_radius(s)
     # ∆c = 3δr
     # δc = min_radius(s) * Base.rtoldefault(Float64)
     
     # Calculeate the negative-end corner of the axis-aligned bounding box.
-    # c′ = c .- ∆c
+    alg = NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver))
+    # alg = SimpleNewtonRaphson()
+    # alg = SimpleNewtonRaphson(autodiff=AutoFiniteDiff())
+    # alg = SimpleBroyden()
+    kwargs_sol = (; abstol=0, reltol=0)
     bₙ = SVector(ntuple(k->
         begin
-            println()
+            # c′ = c .- ∆c
             c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
-            println("c′ for bₙ for k = $k: $c′")
+            # println()
+            # println("c′ for bₙ for k = $k: $c′")
             ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
-            @show ∇proj_level(c′), level(c′,s,δr)
-            if true
-                let f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
-                    prb = NonlinearProblem{false}(f, c′)
-                    sol = solve(prb, NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver)))
-                    # sol = solve(prb, SimpleNewtonRaphson())
-                    # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
-                    # sol = solve(prb, SimpleBroyden())
-                    @show sol
-                    sol.u[k]
-                end
-            else
-                let f(x) = SVector(∇proj_level(x)..., level(x,s,δr))
-                    res = newton(f, c′)
-                    @show res
-                    res.sol[k]
-                end
-            end
+            f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
+            prb = NonlinearProblem{false}(f, c′)
+            sol = solve(prb, alg; kwargs_sol...)
+            sol.u[k]
         end, 
         Val(K))
     )
 
     # Calculate the positive-end corner of the axis-aligned bounding box.
-    # c′ = c .+ ∆c
     bₚ = SVector(ntuple(k->
         begin
-            println()
+            # c′ = c .+ ∆c
             c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
-            println("c′ for bₚ for k = $k: $c′")
+            # println()
+            # println("c′ for bₚ for k = $k: $c′")
             ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
-            @show ∇proj_level(c′), level(c′,s,δr)
-            if true
-                let f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
-                    prb = NonlinearProblem{false}(f, c′)
-                    sol = solve(prb, NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver)))
-                    # sol = solve(prb, SimpleNewtonRaphson())
-                    # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
-                    # sol = solve(prb, SimpleBroyden())
-                    @show sol
-                    sol.u[k]
-                end
-            else
-                let f(x) = SVector(∇proj_level(x)..., level(x,s,δr))
-                    res = newton(f, c′)
-                    @show res
-                    res.sol[k]
-                end
-            end
+            # @show ∇proj_level(c′), level(c′,s,δr)
+            f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
+            prb = NonlinearProblem{false}(f, c′)
+            sol = solve(prb, alg; kwargs_sol...)
+            sol.u[k]
         end, 
         Val(K))
     )
