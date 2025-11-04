@@ -37,23 +37,26 @@ function center end
 
 # Return the minimum axis-aligned bounding box of the shape.
 function bounds(s::AbstractShape{K}, δr::Real) where {K}
+    # Define the nonlinear function to solve (= to find the root).
+    ∇proj_level(x, k) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
+    f(x, p) = SVector(∇proj_level(x, p)..., level(x,s,δr))  # p = k will be used in prb
+
+    # Define the nonlinear solution algorithm.
+    #
+    # SimpleNewtonRaphson(), SimpleNewtonRaphson(autodiff=AutoFiniteDiff()), SimpleBroyden()
+    # have been tested in addition to the algorithm used below.
+    alg = NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver))
+    kwargs_sol = (; )
+
+    # Define parameters for constructing the initial guess solution.
     c = center(s)
-    # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
     ∆c = 2max_radius(s)
+    # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
     # ∆c = 1e-1max_radius(s)
     # ∆c = 3δr
-    # δc = min_radius(s) * Base.rtoldefault(Float64)
-
-    ∇proj_level(x, k) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
-    f(x, p) = SVector(∇proj_level(x, p)..., level(x,s,δr))
+    # ∆c = min_radius(s) * Base.rtoldefault(Float64)
 
     # Calculeate the negative-end corner of the axis-aligned bounding box.
-    alg = NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver))
-    # alg = SimpleNewtonRaphson()
-    # alg = SimpleNewtonRaphson(autodiff=AutoFiniteDiff())
-    # alg = SimpleBroyden()
-    # kwargs_sol = (; abstol=0, reltol=0)
-    kwargs_sol = (; )
     bₙ = SVector(ntuple(k->
         begin
             # c′ = c .- ∆c
@@ -81,22 +84,6 @@ function bounds(s::AbstractShape{K}, δr::Real) where {K}
         Val(K))
     )
 
-
-    # # Calculate the negative-end corner of the axis-aligned bounding box.
-    # bₙ = SVector(ntuple(k->
-    #     begin
-    #         c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards negative direction of k-axis
-    #         bₖ = lagrange(x->x[k], x->level(x,s), c′).sol[k]  # Float64
-    #     end, Val(K)))
-
-    # # Calculate the positive-end corner of the axis-aligned bounding box.
-    # bₚ = SVector(ntuple(k->
-    #     begin
-    #         c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))  # SVector{K,Float64}; perturb c towards positive direction of k-axis
-    #         bₖ = lagrange(x->x[k], x->level(x,s), c′).sol[k]  # Float64
-    #     end, Val(K)))
-
-    # # return c + τᵣ*(bₙ-c), c + τᵣ*(bₚ-c)  # make box slightly larger
     return bₙ, bₚ
 end
 
