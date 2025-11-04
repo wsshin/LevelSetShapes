@@ -57,31 +57,31 @@ function bounds(s::AbstractShape{K}, δr::Real) where {K}
     # ∆c = min_radius(s) * Base.rtoldefault(Float64)
 
     # Calculeate the negative-end corner of the axis-aligned bounding box.
-    bₙ = SVector(ntuple(k->
+    bₙ = SVector{K}(
         begin
             # c′ = c .- ∆c
-            c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
+            c′ = c - ∆c * SVector{K}(k′==k for k′ in 1:K)
             # println()
             # println("c′ for bₙ for k = $k: $c′")
             prb = NonlinearProblem{false}(f, c′, k)
             sol = solve(prb, alg; kwargs_sol...)
             sol.u[k]
-        end,
-        Val(K))
+        end
+        for k in 1:K
     )
 
     # Calculate the positive-end corner of the axis-aligned bounding box.
-    bₚ = SVector(ntuple(k->
+    bₚ = SVector{K}(
         begin
             # c′ = c .+ ∆c
-            c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
+            c′ = c + ∆c * SVector{K}(k′==k for k′ in 1:K)
             # println()
             # println("c′ for bₚ for k = $k: $c′")
             prb = NonlinearProblem{false}(f, c′, k)
             sol = solve(prb, alg; kwargs_sol...)
             sol.u[k]
-        end,
-        Val(K))
+        end
+        for k in 1:K
     )
 
     return bₙ, bₚ

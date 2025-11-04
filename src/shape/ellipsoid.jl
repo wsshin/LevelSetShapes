@@ -10,7 +10,7 @@ function Ellipsoid(
     axes::AbstractMatrix{<:Real}=SMatrix{length(c),length(c)}(I)  # columns are axes vector; assumed orthogonal
 )
     K = length(c)
-    l_ax = SVector(ntuple(k->norm(@view(axes[:,k])), Val(K)))
+    l_ax = SVector{K}(norm(@view(axes[:,k])) for k in 1:K)
     p = axes' ./ l_ax
 
     return Ellipsoid{K,K*K}(c,r,p)
