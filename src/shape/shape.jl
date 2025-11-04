@@ -39,29 +39,31 @@ function center end
 function bounds(s::AbstractShape{K}, δr::Real) where {K}
     c = center(s)
     # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
-    ∆c = max_radius(s)
+    ∆c = 2max_radius(s)
     # ∆c = 1e-1max_radius(s)
     # ∆c = 3δr
     # δc = min_radius(s) * Base.rtoldefault(Float64)
-    
+
+    ∇proj_level(x, k) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
+    f(x, p) = SVector(∇proj_level(x, p)..., level(x,s,δr))
+
     # Calculeate the negative-end corner of the axis-aligned bounding box.
     alg = NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver))
     # alg = SimpleNewtonRaphson()
     # alg = SimpleNewtonRaphson(autodiff=AutoFiniteDiff())
     # alg = SimpleBroyden()
-    kwargs_sol = (; abstol=0, reltol=0)
+    # kwargs_sol = (; abstol=0, reltol=0)
+    kwargs_sol = (; )
     bₙ = SVector(ntuple(k->
         begin
             # c′ = c .- ∆c
             c′ = c - ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
             # println()
             # println("c′ for bₙ for k = $k: $c′")
-            ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
-            f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
-            prb = NonlinearProblem{false}(f, c′)
+            prb = NonlinearProblem{false}(f, c′, k)
             sol = solve(prb, alg; kwargs_sol...)
             sol.u[k]
-        end, 
+        end,
         Val(K))
     )
 
@@ -72,13 +74,10 @@ function bounds(s::AbstractShape{K}, δr::Real) where {K}
             c′ = c + ∆c * SVector(ntuple(k′->(k′==k), Val(K)))
             # println()
             # println("c′ for bₚ for k = $k: $c′")
-            ∇proj_level(x) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
-            # @show ∇proj_level(c′), level(c′,s,δr)
-            f(x, p) = SVector(∇proj_level(x)..., level(x,s,δr))
-            prb = NonlinearProblem{false}(f, c′)
+            prb = NonlinearProblem{false}(f, c′, k)
             sol = solve(prb, alg; kwargs_sol...)
             sol.u[k]
-        end, 
+        end,
         Val(K))
     )
 
