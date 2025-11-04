@@ -17,39 +17,78 @@ function Polyhedron(c::AbstractVector{<:Real}, N::AbstractMatrix{<:Real}, r::Abs
     return Polyhedron{K,F,K*F}(c, N ./ d, r)
 end
 
-function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
-    sd = sdf(x, s.c, s.N, s.r, δr)
-    if sd < 0
-        f(∆r, p) = sdf(x, s.c, s.N, s.r .+ ∆r, δr)
+# function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+#     Q = SMatrix{K,K,Float64}(2I)
+#     d = float(2(x-s.c))
 
-        prb = NonlinearProblem{false}(f, 0)
-        # sol = solve(prb, SimpleNewtonRaphson())
-        # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
-        sol = solve(prb, SimpleBroyden())
-        # @show sol
-        return sol.u
-    else
-        return sd
-    end
-end
+#     # Below, A and b are negated because solveQP(Q, d, A, b) assumes that constraints are
+#     # Aᵀ r ≥ b instead of Aᵀ r ≤ b.
+#     #
+#     # In constructing b, s.r is reduced by δr.
+#     # - Near a face, the retraction increases the distance by δr, so decreasing it back by
+#     # δr later recovers the distance to the original shape.
+#     # - Near a vertex, the retraction increases the distance by more than δr, so increaning
+#     # in back by δr later produces a distance greater than the distance to the original
+#     # vertex: it produces the distance to a shape that is rounded at the vertex.
+#     #
+#     # Suppose we collect all the points that are δr-away from the shape whose faces are
+#     # retracted by δr.  Around a vertex, the radius of rounded vertex becomes exactly δr.
+#     A = -s.N
+#     b = -(s.r .- δr)  # calculate SDF for sharp shape retreated by δr
 
-function sdf(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
-    rmin = minimum(r)
+#     # The following solveQP(...) minimizes f(y) = -cᵀ y + ½ yᵀ Q y, subject to Aᵀ y ≥ b
+#     # (rather than Aᵀ y = b, as the keyword argument `meq` specifying the number of equality
+#     # constraints is set to 0 by default).  Here, y represents a point in the the polyhedron.
+#     #
+#     # For a given point x, we want to find y minimizing ‖y - x‖² = yᵀy - 2 xᵀy + xᵀx, or y
+#     # minimizing yᵀy - 2 xᵀy, equivalently.  For Q = 2I and d = 2x, f(y) = -2 xᵀy + yᵀy,
+#     # which is exactly the function we want to minimize.
+#     #
+#     # Note that when the polygon changes, Q and d do not change; only A and b change.
+#     global y
+#     try
+#         y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
+#     catch e
+#         @show Q, d, A, b
+#         rethrow(e)
+#     end
 
-    # if rmin < δr  # this case makes r′ in sdf_in(...) negative
-    #     r = r .- (rmin - δr)
-    # end
-    if rmin < 2δr
-        r = r .- (rmin - 2δr)  # make r at least 2δr; δr could merge two opposite faces
-    end
+#     return norm(y + s.c - x) - δr  # distance was overestimated by retraction, so reduce it by δr
+# end
 
-    sd = sdf_in(x, c, N, r, δr)
-    if sd > -δr
-        sd = sdf_out(x, c, N, r, δr)
-    end
+# function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+#     sd = sdf(x, s.c, s.N, s.r, δr)
+#     if sd < 0
+#         f(∆r, p) = sdf(x, s.c, s.N, s.r .+ ∆r, δr)
 
-    return sd
-end
+#         prb = NonlinearProblem{false}(f, 0)
+#         # sol = solve(prb, SimpleNewtonRaphson())
+#         # sol = solve(prb, SimpleNewtonRaphson(autodiff=AutoFiniteDiff()))
+#         sol = solve(prb, SimpleBroyden())
+#         # @show sol
+#         return sol.u
+#     else
+#         return sd
+#     end
+# end
+
+# function sdf(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
+#     rmin = minimum(r)
+
+#     # if rmin < δr  # this case makes r′ in sdf_in(...) negative
+#     #     r = r .- (rmin - δr)
+#     # end
+#     if rmin < 2δr
+#         r = r .- (rmin - 2δr)  # make r at least 2δr; δr could merge two opposite faces
+#     end
+
+#     sd = sdf_in(x, c, N, r, δr)
+#     if sd > -δr
+#         sd = sdf_out(x, c, N, r, δr)
+#     end
+
+#     return sd
+# end
 
 function sdf_in(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
     r′ = r .- δr  # calculate SDF for sharp shape retreated by δr
@@ -66,10 +105,10 @@ function sdf_out(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Re
     # Aᵀ r ≥ b instead of Aᵀ r ≤ b.
     #
     # In constructing b, s.r is reduced by δr.
-    # - Near a face, the retraction increases the distance by δr, so decreasing it back by 
+    # - Near a face, the retraction increases the distance by δr, so decreasing it back by
     # δr later recovers the distance to the original shape.
     # - Near a vertex, the retraction increases the distance by more than δr, so increaning
-    # in back by δr later produces a distance greater than the distance to the original 
+    # in back by δr later produces a distance greater than the distance to the original
     # vertex: it produces the distance to a shape that is rounded at the vertex.
     #
     # Suppose we collect all the points that are δr-away from the shape whose faces are
@@ -88,11 +127,25 @@ function sdf_out(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Re
     # Note that when the polygon changes, Q and d do not change; only A and b change.
     global y
     try
-    y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
+        y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
     catch e
         @show Q, d, A, b
         rethrow(e)
     end
 
     return norm(y + c - x) - δr  # distance was overestimated by retraction, so reduce it by δr
+end
+
+function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
+    sd = sdf_in(x, s.c, s.N, s.r, δr)
+    if sd > -δr
+        sd = sdf_out(x, s.c, s.N, s.r, δr)
+    end
+
+    # sd = sdf_out(x, s.c, s.N, s.r, δr)
+    # if sd < -δr
+    #     sd = sdf_in(x, s.c, s.N, s.r, δr)
+    # end
+
+    return sd
 end
