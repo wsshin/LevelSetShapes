@@ -92,7 +92,7 @@ end
 
 function sdf_in(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Real}, r::SVector{F,<:Real}, δr::Real) where {K,F}
     r′ = r .- δr  # calculate SDF for sharp shape retreated by δr
-    d = r′ .- transpose(N) * (x .- c)
+    d = r′ - transpose(N) * (x - c)
 
     return -(minimum(d) + δr)  # minus for SDF
 end
