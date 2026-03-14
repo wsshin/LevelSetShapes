@@ -35,56 +35,68 @@ end
 # Return the center position of the shape, where the level set function is minimized.
 function center end
 
-# Return the minimum axis-aligned bounding box of the shape.
 function bounds(s::AbstractShape{K}, δr::Real) where {K}
+    bₙₚ = (MVector{K,Float64}(undef), MVector{K,Float64}(undef))
+
+    c = center(s)
+    # m_max = round(Int, log2(max_radius(s) / δr))
+    # ms = range(m_max, 0, m_max+1)  # decreasing
+    # ms = range(m_max, 0, 2)  # decreasing
+    ms = 0:0
+    for k in 1:K
+        eₖ = SVector{K}(k′==k for k′ in 1:K)
+
+        for (ind_parity, parity) in enumerate((-1,1))
+            local x_bound
+            for m = ms
+                δr_max = δr * 2^m
+                ∆c = 2max_radius(s)
+                x_bound = c + (parity * ∆c) * eₖ
+                while true
+                    retcode, x_bound = dir_bound(s, δr_max, x_bound + (parity * ∆c) * eₖ, k)
+                    retcode == SciMLBase.ReturnCode.Success && break
+                    ∆c *= 2
+                end
+            end
+
+            # for m = Iterators.drop(range(m_max, 0, 10m_max+1), 1)
+            #     δr_curr = δr * 2^m
+            #     retcode, x_bound = dir_bound(s, δr_curr, x_bound, k)
+            #     if retcode != SciMLBase.ReturnCode.Success
+            #         error("Bounds calculation failed: direction = $k, parity = $parity")
+            #     end
+            # end
+
+            bₙₚ[ind_parity][k] = x_bound[k]
+        end
+    end
+
+    return bₙₚ
+end
+
+function dir_bound(s::AbstractShape{K}, δr::Real, x_guess::SVector{K,Float64}, k::Integer) where {K}
     # Define the nonlinear function to solve (= to find the root).
-    ∇proj_level(x, k) = projected_gradient(x->level(x,s,δr), x, k, Val(K))
+    #
+    # At the root of f(x, k) as a function of x with a parameter k, both the projected
+    # gradient along the kth dimension and the level-set function of the shape s are
+    # nullified.
+    #
+    # The projection dimension k is passed to NonlinearProblem as the paramter p of
+    # NonlinearProblem.
+    ∇proj_level(x, k) = projected_gradient(x->level(x,s,δr), x, k)
     f(x, p) = SVector(∇proj_level(x, p)..., level(x,s,δr))  # p = k will be used in prb
 
     # Define the nonlinear solution algorithm.
     #
-    # SimpleNewtonRaphson(), SimpleNewtonRaphson(autodiff=AutoFiniteDiff()), SimpleBroyden()
-    # have been tested in addition to the algorithm used below.
+    # SimpleNewtonRaphson(), SimpleNewtonRaphson(autodiff=AutoFiniteDiff()), SimpleBroyden(),
+    # TrustedRegion() have been tested in addition to the algorithm used below.
     alg = NewtonRaphson(; linsolve=LinearSolveFunction(tsvd_solver))
-    kwargs_sol = (; )
 
     # Define parameters for constructing the initial guess solution.
-    c = center(s)
-    ∆c = 2max_radius(s)
-    # ∆c = (1+Base.rtoldefault(Float64)) * max_radius(s)
-    # ∆c = 1e-1max_radius(s)
-    # ∆c = 3δr
-    # ∆c = min_radius(s) * Base.rtoldefault(Float64)
+    prb = NonlinearProblem{false}(f, x_guess, k)
+    sol = solve(prb, alg)
 
-    # Calculeate the negative-end corner of the axis-aligned bounding box.
-    bₙ = SVector{K}(
-        begin
-            # c′ = c .- ∆c
-            c′ = c - ∆c * SVector{K}(k′==k for k′ in 1:K)
-            # println()
-            # println("c′ for bₙ for k = $k: $c′")
-            prb = NonlinearProblem{false}(f, c′, k)
-            sol = solve(prb, alg; kwargs_sol...)
-            sol.u[k]
-        end
-        for k in 1:K
-    )
-
-    # Calculate the positive-end corner of the axis-aligned bounding box.
-    bₚ = SVector{K}(
-        begin
-            # c′ = c .+ ∆c
-            c′ = c + ∆c * SVector{K}(k′==k for k′ in 1:K)
-            # println()
-            # println("c′ for bₚ for k = $k: $c′")
-            prb = NonlinearProblem{false}(f, c′, k)
-            sol = solve(prb, alg; kwargs_sol...)
-            sol.u[k]
-        end
-        for k in 1:K
-    )
-
-    return bₙ, bₚ
+    return sol.retcode, sol.u
 end
 
 include("sphere.jl")
