@@ -142,10 +142,36 @@ function level(x::SVector{K,<:Real}, s::Polyhedron{K}, δr::Real) where {K}
         sd = sdf_out(x, s.c, s.N, s.r, δr)
     end
 
+    # # For some reason, the following doesn't produce correct SDF for internal points.
     # sd = sdf_out(x, s.c, s.N, s.r, δr)
     # if sd < -δr
     #     sd = sdf_in(x, s.c, s.N, s.r, δr)
     # end
 
     return sd
+
+    # # Attempts to make the level-set function to produce varying outward normal directions
+    # # near faces as well as corners.  I thought this would help the nonlinear solver in
+    # # bounds(...) to converge to solutions, but it didn't.
+    # return sd  + sum(abs2, x - s.c) * 0.3
+    # return sd  + norm(x - s.c) * 0.3
 end
+
+# # This produces a more rounded level-set function for external points.  I thought this
+# # would help the nonlinear solver in bounds(...) to converge to solutions, but it didn't.
+# function level(x::SVector{K,<:Real}, s::Polyhedron{K,F}, δr::Real=0) where {K,F}
+#     lv_sharp = mapreduce(j->s.N[:,j]⋅(x-s.c) - s.r[j], max, 1:F; init=-Inf)
+#     if lv_sharp < -δr
+#         lv_round = lv_sharp
+#     else
+#         lv_round = zero(lv_sharp)
+#         for j in 1:F
+#             lvⱼ_recess = s.N[:,j]⋅(x-s.c) - s.r[j] + δr
+#             dᵢ = max(0, lvⱼ_recess)
+#             lv_round += dᵢ^2
+#         end
+#         lv_round = √lv_round - δr
+#     end
+
+#     return lv_round
+# end
