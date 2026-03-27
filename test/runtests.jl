@@ -1,8 +1,7 @@
 using LevelSetShapes
-using AbbreviatedTypes
+using ForwardDiff
 using LinearAlgebra
-using Random: MersenneTwister
-using Statistics: mean
+using StaticArrays
 using Test
 
 include("simple.jl")

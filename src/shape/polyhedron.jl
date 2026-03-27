@@ -47,7 +47,7 @@ end
 #     # Note that when the polygon changes, Q and d do not change; only A and b change.
 #     global y
 #     try
-#         y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
+#         y = solveQP(Q, d, A, b)
 #     catch e
 #         @show Q, d, A, b
 #         rethrow(e)
@@ -127,7 +127,7 @@ function sdf_out(x::SVector{K,<:Real}, c::SVector{K,<:Real}, N::SMatrix{K,F,<:Re
     # Note that when the polygon changes, Q and d do not change; only A and b change.
     global y
     try
-        y = solveQP(Q, d, A, b)[1]  # solveQP(...) returns sol, lagr, crval, iact, nact, iter
+        y = solveQP(Q, d, A, b)
     catch e
         @show Q, d, A, b
         rethrow(e)
