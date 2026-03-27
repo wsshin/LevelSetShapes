@@ -1,7 +1,6 @@
 module LevelSetShapes
 
 using ForwardDiff
-using GoldfarbIdnaniSolver: solveQP
 using LinearAlgebra
 using LinearSolve
 using NonlinearSolve
