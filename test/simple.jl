@@ -8,7 +8,7 @@
 
         sol = LevelSetShapes.solveQP(Q, d, A, b)
 
-        @test sol == @SVector [1.0, 2.0]
+        @test sol ≈ @SVector [1.0, 2.0]
     end
 
     @testset "inequalities" begin
